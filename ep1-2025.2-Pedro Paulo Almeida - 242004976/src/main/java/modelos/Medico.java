@@ -20,7 +20,7 @@ public class Medico extends Pessoa {
 
     @Override
     public String exibirDetalhes() {
-        return super.toString() + " - CRM: " + crm + ", Especialidade: " + especialidade + ", Custo Base: R$" + custoConsulta;
+        return super.toString() + " - CRM: " + crm + ", Especialidade: " + especialidade + ", Custo Base: " + custoConsulta;
     }
 
     // formatação csv
