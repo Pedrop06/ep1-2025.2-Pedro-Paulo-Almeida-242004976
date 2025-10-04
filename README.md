@@ -10,10 +10,10 @@ Desenvolvimento de um sistema de gerenciamento hospitalar utilizando os conceito
 
 ## Dados do Aluno
 
-- **Nome completo:** [Preencher aqui]
-- **Matrícula:** [Preencher aqui]
-- **Curso:** [Preencher aqui]
-- **Turma:** [Preencher aqui]
+- **Nome completo:** [Pedro Paulo ALmeida Araújo]
+- **Matrícula:** [242004976]
+- **Curso:** [Engenharia de Software]
+- **Turma:** [02]
 
 ---
 
