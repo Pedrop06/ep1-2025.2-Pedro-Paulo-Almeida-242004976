@@ -18,21 +18,21 @@ public class Medico extends Pessoa {
     public String getEspecialidade() { return especialidade; }
     public double getCustoConsulta() { return custoConsulta; }
 
-    @Override
+   @Override
     public String exibirDetalhes() {
         return super.toString() + " - CRM: " + crm + ", Especialidade: " + especialidade + ", Custo Base: " + custoConsulta;
     }
 
     // formatação csv
-    public String toCSV() {
-        return "MEDICO;" + super.toString() + ";" + crm + ";" + especialidade + "; " + custoConsulta;
+     public String toCSV() { 
+        return "MEDICO;" + super.toString() + ";" + crm + ";" + especialidade + ";" + custoConsulta; 
     }
 
-    // Método estático para recriar objeto a partir da linha CSV
+    // Método estático para recriar objeto a partir da linha CSV 
     public static Medico fromCSV(String csvLine) {
         String[] parts = csvLine.split(";");
-        // Verifica se tem o número correto de partes para Medico
-        if (parts.length < 8) return null; 
+
+        if (parts.length < 7) return null; 
         
         // MEDICO;Nome;CPF;Idade;CRM;Especialidade;Custo
         String nome = parts[1];
@@ -41,7 +41,7 @@ public class Medico extends Pessoa {
         String crm = parts[4];
         String especialidade = parts[5];
         double custoConsulta = Double.parseDouble(parts[6]);
-
+        
         return new Medico(nome, cpf, idade, crm, especialidade, custoConsulta);
     }
 }

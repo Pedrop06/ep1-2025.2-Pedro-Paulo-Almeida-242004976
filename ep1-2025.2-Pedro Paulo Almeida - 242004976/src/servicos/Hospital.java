@@ -1,11 +1,14 @@
 package servicos; 
 
-
 import modelos.*; 
 import java.util.ArrayList;
 import java.util.List;
 import java.io.*;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+import java.util.Scanner;
+
 
 
 public class Hospital implements Serializable {
@@ -18,6 +21,8 @@ public class Hospital implements Serializable {
 
     private static final String MEDICO_FILE = "medicos.csv";
     private static final String PACIENTE_FILE = "pacientes.csv";
+    private static final String CONSULTA_FILE = "consultas.csv";
+    private static final String INTERNACAO_FILE = "internacoes.csv";
 
     public Hospital() {
         this.pacientes = new ArrayList<>();
@@ -28,140 +33,171 @@ public class Hospital implements Serializable {
         
         // Planos fixos (padrão)
         this.planos.add(new PlanoSaude("Plano Bronze", 0.10, false));
-        this.planos.add(new PlanoSaude("Plano VIP", 0.30, true)); // internaGarantida = true (Regra do Plano Especial)
+        this.planos.add(new PlanoSaude("Plano VIP", 0.30, true)); 
     }
 
     // --- MÉTODOS DE CADASTRO E NEGÓCIO ---
     public void cadastrarPaciente(Paciente p) { this.pacientes.add(p); }
     public void cadastrarMedico(Medico m) { this.medicos.add(m); }
-    public void cadastrarPlanoSaude(PlanoSaude ps) { this.planos.add(ps); }
-
-    public boolean agendarConsulta(Paciente p, Medico m, LocalDateTime dataHora, String local) {
-        // Validação de Conflito de Agendamento (Médico/Hora OU Local/Hora)
+    
+    // Método de agendamento de consulta
+    public boolean agendarConsulta(Paciente paciente, Medico medico, LocalDateTime dataHora, String local) {
+        // Regra de Negócio: Não pode agendar consulta com status diferente de AGENDADA para a mesma data/hora/médico
         for (Consulta c : consultas) {
-            
-            boolean medicoOcupado = c.getMedico().getCpf().equals(m.getCpf()) 
-                                    && c.getDataHora().equals(dataHora) 
-                                    && c.getStatus() == StatusConsulta.AGENDADA;
-                                    
-           
-            boolean localOcupado = c.getLocal().equalsIgnoreCase(local) 
-                                   && c.getDataHora().equals(dataHora) 
-                                   && c.getStatus() == StatusConsulta.AGENDADA;
-            
-            if (medicoOcupado || localOcupado) {
-                return false; 
+            if (c.getMedico().equals(medico) && c.getDataHora().equals(dataHora) && c.getStatus().equals(StatusConsulta.AGENDADA)) {
+                System.out.println("[ERRO] O médico " + medico.getNome() + " já tem uma consulta agendada para este horário.");
+                return false;
             }
         }
         
-        Consulta novaConsulta = new Consulta(p, m, dataHora, local);
-        consultas.add(novaConsulta);
-        p.adicionarConsulta(novaConsulta); 
+        Consulta novaConsulta = new Consulta(paciente, medico, dataHora, local);
+        this.consultas.add(novaConsulta);
+        paciente.adicionarConsulta(novaConsulta); 
         return true;
     }
 
-    // --- PERSISTÊNCIA EM CSV ---
-
-    public void salvarDadosCSV() {
-        salvarMedicosCSV();
-        salvarPacientesCSV();
-        // Consultas e Internacoes não estão sendo salvas, mas o esqueleto do código está completo
-        System.out.println("\n[SUCESSO] Dados de Medicos e Pacientes salvos nos arquivos CSV.");
-    }
-
-    private void salvarMedicosCSV() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(MEDICO_FILE))) {
-            writer.write("Tipo;Nome;CPF;Idade;CRM;Especialidade;CustoConsulta\n"); 
-            for (Medico m : medicos) {
-                // Usa o toCSV() corrigido de Medico.java
-                writer.write(m.toCSV() + "\n");
+    // ADIÇÃO: Método de agendamento de Internação
+    public boolean agendarInternacao(Paciente p, Medico m, LocalDate dataEntrada, int numeroQuarto) {
+        // Regra: Quarto não pode estar ocupado na data de entrada
+        for (Internacao i : internacoes) {
+            if (i.getNumeroQuarto() == numeroQuarto && i.getStatus().equals("Ativa")) {
+                System.out.println("[ERRO] O quarto " + numeroQuarto + " está atualmente ocupado.");
+                return false;
             }
-        } catch (IOException e) {
-            System.out.println("\n[ERRO] Falha ao salvar médicos: " + e.getMessage());
         }
-    }
-
-    private void salvarPacientesCSV() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(PACIENTE_FILE))) {
-            writer.write("Tipo;Nome;CPF;Idade;PlanoNome\n"); 
-            for (Paciente p : pacientes) {
-                // Usa o toCSV() de Paciente.java (Comum ou Especial)
-                writer.write(p.toCSV() + "\n");
-            }
-        } catch (IOException e) {
-            System.out.println("\n[ERRO] Falha ao salvar pacientes: " + e.getMessage());
-        }
-    }
-
-    public void carregarDadosCSV() {
-        carregarMedicosCSV();
-        carregarPacientesCSV();
-        System.out.println("[INFO] Dados de Medicos e Pacientes carregados dos arquivos CSV.");
+        
+        Internacao novaInternacao = new Internacao(p, m, dataEntrada, numeroQuarto);
+        this.internacoes.add(novaInternacao);
+        p.adicionarInternacao(novaInternacao);
+        return true;
     }
     
-    private void carregarMedicosCSV() {
-        try (BufferedReader reader = new BufferedReader(new FileReader(MEDICO_FILE))) {
-            reader.readLine(); // Pula o cabeçalho
-            String line;
-            while ((line = reader.readLine()) != null) {
-                Medico m = Medico.fromCSV(line); // Usa o fromCSV() corrigido
-                if (m != null) {
-                    // Evita duplicação caso carregue mais de uma vez
-                    if (medicos.stream().noneMatch(med -> med.getCpf().equals(m.getCpf()))) {
-                         this.medicos.add(m);
-                    }
-                }
-            }
-        } catch (FileNotFoundException e) {
-            System.out.println("[INFO] Arquivo de médicos (medicos.csv) não encontrado. Criará novo na saída.");
+    // SALVAR DADOS CSV
+    public void salvarDadosCSV() {
+        // 1. SALVA MÉDICOS
+        try (PrintWriter pw = new PrintWriter(new FileWriter(MEDICO_FILE))) {
+            for (Medico m : medicos) { pw.println(m.toCSV()); }
+            System.out.println("[INFO] Médicos salvos em " + MEDICO_FILE);
         } catch (IOException e) {
+            System.out.println("[ERRO] Falha ao salvar médicos: " + e.getMessage());
+        }
+
+        // 2. SALVA PACIENTES
+        try (PrintWriter pw = new PrintWriter(new FileWriter(PACIENTE_FILE))) {
+            for (Paciente p : pacientes) { pw.println(p.toCSV()); }
+            System.out.println("[INFO] Pacientes salvos em " + PACIENTE_FILE);
+        } catch (IOException e) {
+            System.out.println("[ERRO] Falha ao salvar pacientes: " + e.getMessage());
+        }
+
+        // 3. SALVA CONSULTAS
+        try (PrintWriter pw = new PrintWriter(new FileWriter(CONSULTA_FILE))) {
+            for (Consulta c : consultas) { pw.println(c.toCSV()); }
+            System.out.println("[INFO] Consultas salvas em " + CONSULTA_FILE);
+        } catch (IOException e) {
+            System.out.println("[ERRO] Falha ao salvar consultas: " + e.getMessage());
+        }
+        
+        // 4. SALVA INTERNAÇÕES
+        try (PrintWriter pw = new PrintWriter(new FileWriter(INTERNACAO_FILE))) {
+            for (Internacao i : internacoes) { pw.println(i.toCSV()); }
+            System.out.println("[INFO] Internações salvas em " + INTERNACAO_FILE);
+        } catch (IOException e) {
+            System.out.println("[ERRO] Falha ao salvar internações: " + e.getMessage());
+        }
+    }
+
+    //CARREGAR DADOS CSV (ATUALIZADO)
+    public void carregarDadosCSV() {
+        // 1. CARREGA MÉDICOS
+        try (Scanner s = new Scanner(new File(MEDICO_FILE))) {
+            while (s.hasNextLine()) {
+                String line = s.nextLine();
+                Medico m = Medico.fromCSV(line); 
+                if (m != null) { this.medicos.add(m); }
+            }
+            System.out.println("[INFO] " + medicos.size() + " médicos carregados de " + MEDICO_FILE);
+        } catch (FileNotFoundException e) {
+            System.out.println("[INFO] Arquivo de médicos (" + MEDICO_FILE + ") não encontrado. Criará novo na saída.");
+        } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) { 
             System.out.println("[ERRO] Falha ao ler arquivo de médicos: " + e.getMessage());
         }
-    }
 
-    private void carregarPacientesCSV() {
-        try (BufferedReader reader = new BufferedReader(new FileReader(PACIENTE_FILE))) {
-            reader.readLine(); // Pula o cabeçalho
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(";");
-                if (parts.length < 5) continue; 
-                
-                String nome = parts[1];
-                String cpf = parts[2];
-                int idade = Integer.parseInt(parts[3]);
-                String tipo = parts[0];
 
-                if (pacientes.stream().anyMatch(p -> p.getCpf().equals(cpf))) {
-                    continue; // Pula se já existir (evita duplicação)
-                }
-
-                if (tipo.equals("PACIENTE_C")) {
-                    this.pacientes.add(new Paciente(nome, cpf, idade));
-                } else if (tipo.equals("PACIENTE_E")) {
-                    String planoNome = parts[4];
-                    // Busca a referência do objeto PlanoSaude pelo nome
-                    PlanoSaude plano = planos.stream()
-                                            .filter(p -> p.getNome().equals(planoNome))
-                                            .findFirst()
-                                            .orElse(null);
-                    if (plano != null) {
-                        this.pacientes.add(new PacienteEspecial(nome, cpf, idade, plano));
-                    }
-                }
+        // 2. CARREGA PACIENTES 
+        try (Scanner s = new Scanner(new File(PACIENTE_FILE))) {
+            while (s.hasNextLine()) {
+                String line = s.nextLine();
+                Paciente p = Paciente.fromCSV(line, planos); 
+                if (p != null) { this.pacientes.add(p); }
             }
+            System.out.println("[INFO] " + pacientes.size() + " pacientes carregados de " + PACIENTE_FILE);
         } catch (FileNotFoundException e) {
-            System.out.println("[INFO] Arquivo de pacientes (pacientes.csv) não encontrado. Criará novo na saída.");
-        } catch (IOException | NumberFormatException e) {
+            System.out.println("[INFO] Arquivo de pacientes (" + PACIENTE_FILE + ") não encontrado. Criará novo na saída.");
+        } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) { 
             System.out.println("[ERRO] Falha ao ler arquivo de pacientes: " + e.getMessage());
         }
+        
+        
+        // 3. CARREGA CONSULTAS (DEPOIS de Pacientes e Médicos)
+        try (Scanner s = new Scanner(new File(CONSULTA_FILE))) {
+            while (s.hasNextLine()) {
+                String line = s.nextLine();
+                Consulta c = Consulta.fromCSV(line, this); 
+                if (c != null) {
+                    this.consultas.add(c);
+                    c.getPaciente().adicionarConsulta(c); 
+                }
+            }
+            System.out.println("[INFO] " + consultas.size() + " consultas carregadas de " + CONSULTA_FILE);
+        } catch (FileNotFoundException e) {
+            System.out.println("[INFO] Arquivo de consultas (" + CONSULTA_FILE + ") não encontrado. Criará novo na saída.");
+        } catch (NumberFormatException | ArrayIndexOutOfBoundsException | DateTimeParseException e) {
+            System.out.println("[ERRO] Falha ao ler arquivo de consultas: " + e.getMessage());
+        }
+        
+        // 4. CARREGA INTERNAÇÕES (DEPOIS de Pacientes e Médicos)
+        try (Scanner s = new Scanner(new File(INTERNACAO_FILE))) {
+            while (s.hasNextLine()) {
+                String line = s.nextLine();
+                Internacao i = Internacao.fromCSV(line, this); 
+                if (i != null) {
+                    this.internacoes.add(i);
+                    i.getPaciente().adicionarInternacao(i); 
+                }
+            }
+            System.out.println("[INFO] " + internacoes.size() + " internações carregadas de " + INTERNACAO_FILE);
+        } catch (FileNotFoundException e) {
+            System.out.println("[INFO] Arquivo de internações (" + INTERNACAO_FILE + ") não encontrado. Criará novo na saída.");
+        } catch (NumberFormatException | ArrayIndexOutOfBoundsException | DateTimeParseException e) {
+            System.out.println("[ERRO] Falha ao ler arquivo de internações: " + e.getMessage());
+        }
     }
-    
-    // --- GETTERS E RELATÓRIOS (Simplificado) ---
+
+
+    //GETTERS E BUSCAS ESSENCIAIS
     public List<Paciente> getPacientes() { return pacientes; }
     public List<Medico> getMedicos() { return medicos; }
     public List<PlanoSaude> getPlanos() { return planos; }
+    public List<Internacao> getInternacoes() { 
+        return internacoes; 
+    } 
 
+    public Paciente buscarPacientePorCpf(String cpf) {
+        return pacientes.stream()
+                .filter(p -> p.getCpf().equals(cpf))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public Medico buscarMedicoPorCrm(String crm) {
+        return medicos.stream()
+                .filter(m -> m.getCrm().equals(crm))
+                .findFirst()
+                .orElse(null);
+    }
+
+    //RELATÓRIOS
     public void relatorioPacientes() {
         System.out.println("\n--- RELATÓRIO DE PACIENTES CADASTRADOS ---");
         if (pacientes.isEmpty()) { System.out.println("Nenhum paciente cadastrado."); return; }
@@ -175,6 +211,22 @@ public class Hospital implements Serializable {
         if (medicos.isEmpty()) { System.out.println("Nenhum médico cadastrado."); return; }
         for (Medico m : medicos) {
             System.out.println(m.exibirDetalhes());
+        }
+    }
+    
+    public void relatorioConsultas() {
+        System.out.println("\n--- RELATÓRIO DE CONSULTAS AGENDADAS/CONCLUÍDAS ---");
+        if (consultas.isEmpty()) { System.out.println("Nenhuma consulta registrada."); return; }
+        for (Consulta c : consultas) {
+            System.out.println(c.toString());
+        }
+    }
+    
+    public void relatorioInternacoes() {
+        System.out.println("\n--- RELATÓRIO DE INTERNAÇÕES ---");
+        if (internacoes.isEmpty()) { System.out.println("Nenhuma internação registrada."); return; }
+        for (Internacao i : internacoes) {
+            System.out.println(i.toString());
         }
     }
 }

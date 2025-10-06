@@ -32,8 +32,8 @@ public class PacienteEspecial extends Paciente  {
     }
 
     // Formato para CSV (Tipo;Nome;CPF;Idade;PlanoNome)
-    @Override
-    public String toCSV() {
-        return "PACIENTE_E;" + super.toString() + ";" + this.plano.getNome();
+   @Override
+    public String toCSV() { // SUBSTITUIR
+        return "PACIENTE_E;" + super.toString() + ";" + plano.getNome();
     }
 }
