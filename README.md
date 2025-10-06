@@ -20,10 +20,10 @@ Desenvolvimento de um sistema de gerenciamento hospitalar utilizando os conceito
 ## Instruções para Compilação e Execução
 
 1. **Compilação:**  
-   [Descrever aqui como compilar o projeto. Exemplo: `javac Main.java` ou o script usado]
+   [javac -d bin src/modelos/*.java src/servicos/*.java src/util/*.java]
 
 2. **Execução:**  
-   [Descrever aqui como executar o projeto. Exemplo: `java Main` ou o script usado]
+   [java -cp bin util.Main]
 
 3. **Estrutura de Pastas:**  
    [Descrever aqui as principais pastas do projeto]

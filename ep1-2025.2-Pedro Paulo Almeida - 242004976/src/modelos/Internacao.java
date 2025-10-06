@@ -26,6 +26,7 @@ public class Internacao implements Serializable {
 
     // Getters
     public Paciente getPaciente() { return paciente; }
+    public Medico getMedicoResponsavel() { return medicoResponsavel; } 
     public int getNumeroQuarto() { return numeroQuarto; }
     public String getStatus() { return status; }
     public LocalDate getDataEntrada() { return dataEntrada; }
@@ -67,20 +68,28 @@ public class Internacao implements Serializable {
     @Override
     public String toString() {
         String dataS = (dataSaida == null) ? "N/A" : dataSaida.toString();
-        String custo = (status.equals("Concluída")) ? String.format("R$%.2f", calcularCustoTotal()) : status;
+        String custo = (status.equals("Concluída")) ? String.format("R$%.2f", calcularCustoTotal()) : "N/A";
 
-        return String.format("Paciente: %s | Médico: %s | Quarto: %d | Entrada: %s | Saída: %s | Custo: %s",
-                paciente.getNome(), medicoResponsavel.getNome(), numeroQuarto, dataEntrada.toString(), dataS, custo);
+        return String.format("Paciente: %s | Médico: %s | Entrada: %s | Saída: %s | Quarto: %d | Status: %s | Custo Total: %s",
+                paciente.getNome(), 
+                medicoResponsavel.getNome(), 
+                dataEntrada.toString(), 
+                dataS, 
+                numeroQuarto, 
+                status, 
+                custo);
     }
-
+    
+    // formatação csv
     public String toCSV() {
+        // Formato: PACIENTE_CPF;MEDICO_CRM;DATA_ENTRADA;DATA_SAIDA;NUMERO_QUARTO;CUSTO_DIARIO;STATUS
         String dataSaidaStr = (dataSaida == null) ? "N/A" : dataSaida.toString();
-        // Formato: PACIENTE_CPF;MEDICO_CRM;DATA_ENTRADA;DATA_SAIDA;QUARTO;CUSTO_DIARIO;STATUS
+        
         return paciente.getCpf() + ";" + medicoResponsavel.getCrm() + ";" + dataEntrada.toString() + ";" +
                dataSaidaStr + ";" + numeroQuarto + ";" + custoDiario + ";" + status;
     }
 
-    // ADIÇÃO: fromCSV para Internacao
+    
     public static Internacao fromCSV(String csvLine, Hospital hospital) throws DateTimeParseException {
         String[] parts = csvLine.split(";");
         if (parts.length != 7) return null; 
@@ -92,7 +101,7 @@ public class Internacao implements Serializable {
         Medico m = hospital.buscarMedicoPorCrm(medicoCrm);
         
         if (p == null || m == null) {
-            return null; // Não carrega se não encontrar a referência
+            return null;
         }
 
         // 2. Parsers
@@ -104,13 +113,18 @@ public class Internacao implements Serializable {
         String status = parts[6];
 
         // 3. Reconstrução
-        Internacao i = new Internacao(p, m, dataEntrada, numeroQuarto); 
-        
-        // Ajusta campos que não são definidos no construtor
-        i.dataSaida = dataSaida;
+        Internacao i = new Internacao(p, m, dataEntrada, numeroQuarto);
+
         i.custoDiario = custoDiario;
         i.status = status;
         
-        return i; 
+        if (dataSaida != null) { 
+            i.dataSaida = dataSaida; 
+        }
+
+        // 4. Garante que o paciente tenha a internação no histórico (se necessário)
+        p.adicionarInternacao(i);
+        
+        return i;
     }
 }
