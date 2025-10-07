@@ -26,7 +26,7 @@ Desenvolvimento de um sistema de gerenciamento hospitalar utilizando os conceito
    [java -cp bin util.Main]
 
 3. **Estrutura de Pastas:**  
-|   ep1-2025.2-Pedro Paulo Almeida - 242004976/
+```|   ep1-2025.2-Pedro Paulo Almeida - 242004976/
 |
 ├── src/
 │   ├── modelos/
@@ -51,6 +51,7 @@ Desenvolvimento de um sistema de gerenciamento hospitalar utilizando os conceito
 ├── pacientes.csv     <-- Arquivo de dados de persistência (IGNORADO pelo Git)
 ├── consultas.csv     <-- Arquivo de dados de persistência (IGNORADO pelo Git)
 └── internacoes.csv   <-- Arquivo de dados de persistência (IGNORADO pelo Git)
+```
 
 3. **Versão do JAVA utilizada:**  
    [java 21]
