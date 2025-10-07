@@ -42,13 +42,12 @@ public class Hospital implements Serializable {
         this.medicos.add(m); 
     }
 
-    // Método original (mantido para compatibilidade, ex: fromCSV)
     public boolean agendarConsulta(Paciente p, Medico m, LocalDateTime dataHora, String local) {
         Consulta novaConsulta = new Consulta(p, m, dataHora, local);
         return this.consultas.add(novaConsulta);
     }
     
-    // NOVO MÉTODO: Agendar Consulta por CPF e CRM
+    //MÉTODO: Agendar Consulta por CPF e CRM
     public boolean agendarConsulta(String cpfPaciente, String crmMedico, LocalDateTime dataHora, String local) {
         Paciente p = buscarPacientePorCpf(cpfPaciente);
         Medico m = buscarMedicoPorCrm(crmMedico);
@@ -62,17 +61,15 @@ public class Hospital implements Serializable {
             return false;
         }
         
-        // Chama o método original que recebe os objetos
+        
         return agendarConsulta(p, m, dataHora, local);
     }
     
-    // Método original (mantido para compatibilidade, ex: fromCSV)
     public boolean agendarInternacao(Paciente p, Medico m, LocalDate dataEntrada, int numeroQuarto) {
         Internacao novaInternacao = new Internacao(p, m, dataEntrada, numeroQuarto);
         return this.internacoes.add(novaInternacao);
     }
 
-    // NOVO MÉTODO: Agendar Internação por CPF e CRM
     public boolean agendarInternacao(String cpfPaciente, String crmMedico, LocalDate dataEntrada, int numeroQuarto) {
         Paciente p = buscarPacientePorCpf(cpfPaciente);
         Medico m = buscarMedicoPorCrm(crmMedico);
@@ -86,7 +83,6 @@ public class Hospital implements Serializable {
             return false;
         }
         
-        // Chama o método original que recebe os objetos
         return agendarInternacao(p, m, dataEntrada, numeroQuarto);
     }
 
@@ -127,7 +123,7 @@ public class Hospital implements Serializable {
         return false;
     }
 
-    // --- MÉTODOS DE BUSCA (EXISTENTES) ---
+    // --- MÉTODOS DE BUSCA ---
 
     public Paciente buscarPacientePorCpf(String cpf) {
         return pacientes.stream()
@@ -168,33 +164,49 @@ public class Hospital implements Serializable {
             System.out.println("[ERRO] Falha ao salvar arquivo de pacientes: " + e.getMessage());
         }
 
-        // Salvamento de Consultas
+        // Salvamento de Consultas 
         try (PrintWriter writer = new PrintWriter(new FileWriter(CONSULTA_FILE))) {
             writer.println("PACIENTE_CPF;MEDICO_CRM;DATA_HORA;LOCAL;STATUS;DIAGNOSTICO;VALOR_COBRADO");
+            
+            // 1. Salva consultas ativas (AGENDADAS)
             for (Consulta c : consultas) {
                 writer.println(c.toCSV());
             }
-            System.out.println("[INFO] Consultas ativas salvas com sucesso.");
+            
+            // 2. Salva consultas do histórico dos pacientes (CONCLUÍDAS/CANCELADAS)
+            for (Paciente p : pacientes) {
+                for (Consulta c : p.getHistoricoConsultas()) {
+                    writer.println(c.toCSV());
+                }
+            }
+            System.out.println("[INFO] Consultas salvas (ativas + histórico) com sucesso.");
         } catch (IOException e) {
             System.out.println("[ERRO] Falha ao salvar arquivo de consultas: " + e.getMessage());
         }
 
-        // Salvamento de Internações
+        // Salvamento de Internações 
         try (PrintWriter writer = new PrintWriter(new FileWriter(INTERNACAO_FILE))) {
             writer.println("PACIENTE_CPF;MEDICO_CRM;DATA_ENTRADA;DATA_SAIDA;QUARTO;CUSTO_DIARIO;STATUS");
+            
+            // 1. Salva internações ativas
             for (Internacao i : internacoes) {
                 writer.println(i.toCSV());
             }
-            System.out.println("[INFO] Internações ativas salvas com sucesso.");
+            
+            // 2. Salva internações do histórico dos pacientes (Concluídas/Canceladas)
+            for (Paciente p : pacientes) {
+                for (Internacao i : p.getHistoricoInternacoes()) {
+                    writer.println(i.toCSV());
+                }
+            }
+            System.out.println("[INFO] Internações salvas (ativas + histórico) com sucesso.");
         } catch (IOException e) {
             System.out.println("[ERRO] Falha ao salvar arquivo de internações: " + e.getMessage());
         }
     }
 
     public void carregarDadosCSV() {
-        // 1. Carregar Planos (já estão fixos, nada a fazer aqui, mas em um sistema real seriam carregados)
-        
-        // 2. Carregar Médicos
+        // 1. Carregar Médicos
         try (BufferedReader reader = new BufferedReader(new FileReader(MEDICO_FILE))) {
             reader.readLine(); // Pular o cabeçalho
             String line;
@@ -211,7 +223,7 @@ public class Hospital implements Serializable {
             System.out.println("[ERRO] Falha ao carregar arquivo de médicos: " + e.getMessage());
         }
         
-        // 3. Carregar Pacientes
+        // 2. Carregar Pacientes
         try (BufferedReader reader = new BufferedReader(new FileReader(PACIENTE_FILE))) {
             reader.readLine(); // Pular o cabeçalho
             String line;
@@ -229,9 +241,9 @@ public class Hospital implements Serializable {
             System.out.println("[ERRO] Falha ao carregar arquivo de pacientes: " + e.getMessage());
         }
         
-        // 4. Carregar Consultas (precisa de Médicos e Pacientes já carregados)
+        // 3. Carregar Consultas 
         try (BufferedReader reader = new BufferedReader(new FileReader(CONSULTA_FILE))) {
-            reader.readLine(); // Pular o cabeçalho
+            reader.readLine();
             String line;
             while ((line = reader.readLine()) != null) {
                 try {
@@ -253,9 +265,9 @@ public class Hospital implements Serializable {
             System.out.println("[ERRO] Falha ao carregar arquivo de consultas: " + e.getMessage());
         }
 
-         // 5. Carregar Internações (precisa de Médicos e Pacientes já carregados)
+         // 4. Carregar Internações 
         try (BufferedReader reader = new BufferedReader(new FileReader(INTERNACAO_FILE))) {
-            reader.readLine(); // Pular o cabeçalho
+            reader.readLine();
             String line;
             while ((line = reader.readLine()) != null) {
                 try {

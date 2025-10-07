@@ -10,7 +10,7 @@ Desenvolvimento de um sistema de gerenciamento hospitalar utilizando os conceito
 
 ## Dados do Aluno
 
-- **Nome completo:** [Pedro Paulo ALmeida Araújo]
+- **Nome completo:** [Pedro Paulo Almeida Araújo]
 - **Matrícula:** [242004976]
 - **Curso:** [Engenharia de Software]
 - **Turma:** [02]
@@ -26,10 +26,34 @@ Desenvolvimento de um sistema de gerenciamento hospitalar utilizando os conceito
    [java -cp bin util.Main]
 
 3. **Estrutura de Pastas:**  
-   [Descrever aqui as principais pastas do projeto]
+|   ep1-2025.2-Pedro Paulo Almeida - 242004976/
+|
+├── src/
+│   ├── modelos/
+│   │   ├── Consulta.java
+│   │   ├── Internacao.java
+│   │   ├── Medico.java
+│   │   ├── Paciente.java
+│   │   ├── PacienteEspecial.java
+│   │   ├── Pessoa.java
+│   │   ├── PlanoSaude.java
+│   │   ├── StatusConsulta.java
+│   │
+│   ├── servicos/
+│   │   └── Hospital.java
+│   │
+│   └── util/
+│       └── Main.java
+│
+├── .gitignore
+│
+├── medicos.csv       <-- Arquivo de dados de persistência (IGNORADO pelo Git)
+├── pacientes.csv     <-- Arquivo de dados de persistência (IGNORADO pelo Git)
+├── consultas.csv     <-- Arquivo de dados de persistência (IGNORADO pelo Git)
+└── internacoes.csv   <-- Arquivo de dados de persistência (IGNORADO pelo Git)
 
 3. **Versão do JAVA utilizada:**  
-   [Descrever aqui como versão do JAVA utilizada no projeto. Sugestão: `java 21`]
+   [java 21]
 
 ---
 
@@ -62,7 +86,7 @@ Desenvolvimento de um sistema de gerenciamento hospitalar utilizando os conceito
 
 ## Contato
 
-- [Opcional: E-mail pessoal do aluno.]
+- [pedroparaujo06@gmail.com]
 
 ---
 
