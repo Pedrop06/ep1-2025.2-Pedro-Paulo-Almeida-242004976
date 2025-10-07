@@ -30,61 +30,53 @@ public class Internacao implements Serializable {
     public int getNumeroQuarto() { return numeroQuarto; }
     public String getStatus() { return status; }
     public LocalDate getDataEntrada() { return dataEntrada; }
+    public LocalDate getDataSaida() { return dataSaida; }
+    public double getCustoDiario() { return custoDiario; } 
 
     // Finalizar internação
     public void finalizar(LocalDate dataSaida) {
         this.dataSaida = dataSaida;
         this.status = "Concluída";
+        System.out.println("[INFO] Internação finalizada em " + dataSaida);
     }
     
-    public void cancelar() {
-        this.status = "Cancelada";
-    }
-
-    // Regra de Negócio: Cálculo de Custo
+    // Método para calcular o custo total (Regra de Negócio)
     public double calcularCustoTotal() {
+        // Se ainda está ativo, calcula até a data atual
+        LocalDate dataFim = (dataSaida == null) ? LocalDate.now() : dataSaida;
         
-        if (!status.equals("Concluída")) {
-            return -1.0; // Internação ativa ou cancelada, custo não finalizado
-        }
-        
-        // Se o status for "Concluída", dataSaida deve ter sido definida no método finalizar()
-        long dias = ChronoUnit.DAYS.between(dataEntrada, dataSaida);
-        dias = dias == 0 ? 1 : dias; // Mínimo de 1 dia
-    
-        double custoFinal = dias * custoDiario;
+        long dias = ChronoUnit.DAYS.between(dataEntrada, dataFim);
+        // Garante pelo menos 1 dia de internação
+        if (dias < 1) dias = 1; 
 
-        // Regra do Plano Especial (Internação gratuita < 7 dias)
-        if (dias < 7 && paciente instanceof PacienteEspecial) {
+        double custoBase = dias * custoDiario;
+        
+        // Regra de Negócio: Plano com internação garantida (máximo 7 dias de graça)
+        if (paciente instanceof PacienteEspecial) {
             PacienteEspecial pe = (PacienteEspecial) paciente;
             if (pe.getPlano().isInternaGarantida()) {
-                custoFinal = 0.0;
+                long diasGratuitos = Math.min(dias, 7);
+                custoBase -= diasGratuitos * custoDiario;
             }
         }
-
-        return custoFinal;
+        
+        // Garante que o custo não seja negativo
+        return Math.max(0, custoBase);
     }
 
     @Override
     public String toString() {
-        String dataS = (dataSaida == null) ? "N/A" : dataSaida.toString();
-        String custo = (status.equals("Concluída")) ? String.format("R$%.2f", calcularCustoTotal()) : "N/A";
+        String saidaStr = dataSaida == null ? "Em andamento" : dataSaida.toString();
+        String custoStr = status.equals("Concluída") ? String.format("Total: R$%.2f", calcularCustoTotal()) : "Custo Diário: R$200.00";
 
-        return String.format("Paciente: %s | Médico: %s | Entrada: %s | Saída: %s | Quarto: %d | Status: %s | Custo Total: %s",
-                paciente.getNome(), 
-                medicoResponsavel.getNome(), 
-                dataEntrada.toString(), 
-                dataS, 
-                numeroQuarto, 
-                status, 
-                custo);
+        return String.format("Internação - %s | %s - Entrada: %s, Saída: %s | Quarto: %d. %s",
+             status, paciente.getNome(), dataEntrada, saidaStr, numeroQuarto, custoStr);
     }
-    
-    // formatação csv
-    public String toCSV() {
-        // Formato: PACIENTE_CPF;MEDICO_CRM;DATA_ENTRADA;DATA_SAIDA;NUMERO_QUARTO;CUSTO_DIARIO;STATUS
-        String dataSaidaStr = (dataSaida == null) ? "N/A" : dataSaida.toString();
-        
+
+    // Formato CSV
+    public String toCSV() { 
+        String dataSaidaStr = dataSaida == null ? "N/A" : dataSaida.toString();
+        // PACIENTE_CPF;MEDICO_CRM;DATA_ENTRADA;DATA_SAIDA;QUARTO;CUSTO_DIARIO;STATUS
         return paciente.getCpf() + ";" + medicoResponsavel.getCrm() + ";" + dataEntrada.toString() + ";" +
                dataSaidaStr + ";" + numeroQuarto + ";" + custoDiario + ";" + status;
     }
@@ -114,16 +106,9 @@ public class Internacao implements Serializable {
 
         // 3. Reconstrução
         Internacao i = new Internacao(p, m, dataEntrada, numeroQuarto);
-
         i.custoDiario = custoDiario;
         i.status = status;
-        
-        if (dataSaida != null) { 
-            i.dataSaida = dataSaida; 
-        }
-
-        // 4. Garante que o paciente tenha a internação no histórico (se necessário)
-        p.adicionarInternacao(i);
+        i.dataSaida = dataSaida; 
         
         return i;
     }
