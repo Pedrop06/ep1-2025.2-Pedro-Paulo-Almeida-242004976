@@ -26,7 +26,8 @@ Desenvolvimento de um sistema de gerenciamento hospitalar utilizando os conceito
    [java -cp bin util.Main]
 
 3. **Estrutura de Pastas:**  
-```|   ep1-2025.2-Pedro Paulo Almeida - 242004976/
+```
+|   ep1-2025.2-Pedro Paulo Almeida - 242004976/
 |
 ├── src/
 │   ├── modelos/
@@ -67,13 +68,13 @@ Desenvolvimento de um sistema de gerenciamento hospitalar utilizando os conceito
 ## Prints da Execução
 
 1. Menu Principal:  
-   ![Inserir Print 1](caminho/do/print1.png)
+   ![Menu_principal](prints/Menu_principal.png)
 
 2. Cadastro de Médico:  
-   ![Inserir Print 2](caminho/do/print2.png)
+   ![Menu_cadastro_medico](prints/Menu_cadastro_medico.png)
 
-3. Relatório de ?:  
-   ![Inserir Print 3](caminho/do/print3.png)
+3. Relatório de internações:  
+   ![Relatorio_internações](prints/Relatorio_internacoes.png)
 
 ---
 
@@ -81,7 +82,7 @@ Desenvolvimento de um sistema de gerenciamento hospitalar utilizando os conceito
 
 ## Observações (Extras ou Dificuldades)
 
-- [Espaço para o aluno comentar qualquer funcionalidade extra que implementou, dificuldades enfrentadas, ou considerações importantes.]
+- [Dentre todas as requisições feitas pelo trabalho, com certeza a maior dificuldade foi persistir os dados em csv e fazer um menu simples mas intuitivo e de fácil entendimento. E, ao dar certo foi o motivo de minha maior realização dentro deste projeto]
 
 ---
 
