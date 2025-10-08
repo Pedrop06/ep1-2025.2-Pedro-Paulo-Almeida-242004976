@@ -29,6 +29,8 @@ Desenvolvimento de um sistema de gerenciamento hospitalar utilizando os conceito
 ```
 |   ep1-2025.2-Pedro Paulo Almeida - 242004976/
 |
+├── prints/
+|
 ├── src/
 │   ├── modelos/
 │   │   ├── Consulta.java
@@ -68,13 +70,13 @@ Desenvolvimento de um sistema de gerenciamento hospitalar utilizando os conceito
 ## Prints da Execução
 
 1. Menu Principal:  
-   ![Menu_principal](prints/Menu_principal.png)
+   ![Menu_principal](ep1-2025.2-Pedro_Paulo_Almeida/prints/Menu_principal.png)
 
 2. Cadastro de Médico:  
-   ![Menu_cadastro_medico](prints/Menu_cadastro_medico.png)
+   ![Menu_cadastro_medico](ep1-2025.2-Pedro_Paulo_Almeida/prints/Menu_cadastro_medico.png)
 
 3. Relatório de internações:  
-   ![Relatorio_internações](prints/Relatorio_internacoes.png)
+   ![Relatorio_internações](ep1-2025.2-Pedro_Paulo_Almeida/prints/Relatorio_internacoes.png)
 
 ---
 
